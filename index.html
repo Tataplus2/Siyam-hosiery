@@ -1,0 +1,195 @@
+<!DOCTYPE html><html>
+<head>
+  <title>Tayebul Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    
+    .ban {
+      background: linear-gradient(270deg, #ff0080, #ff8c00, #40e0d0, #8a2be2, #ff0080);
+      background-size: 1000% 1000%;
+      animation: ledBg 10s ease infinite;
+      color: #fff;
+      font-weight: bold;
+      font-size: 30px;
+      padding: 12px 0;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .banner {
+      background: linear-gradient(270deg, #ff0080, #ff8c00, #40e0d0, #8a2be2, #ff0080);
+      background-size: 1000% 1000%;
+      animation: ledBg 10s ease infinite;
+      color: #fff;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 12px 0;
+      text-align: center;
+      overflow: hidden;
+    }
+    .banner span {
+      display: inline-block;
+      animation: scroll-left 15s linear infinite, glowText 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes animateBorder {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes glowBorder {
+      0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 255, 0.4); }
+      50% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); }
+    }
+
+    @keyframes scroll-left {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    @keyframes glowText {
+      0% { text-shadow: 0 0 5px #fff, 0 0 10px #ff0080, 0 0 20px #ff0080; }
+      100% { text-shadow: 0 0 10px #fff, 0 0 20px #40e0d0, 0 0 30px #40e0d0; }
+    }
+    @keyframes ledBg {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    h2 {
+      text-align: center;
+      margin: 25px;
+    }
+    .product-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      padding: 10px;
+    }
+    .product {
+  background: #fff;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  width: 160px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  animation: glowBorder 2s linear infinite;
+}
+    .product img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .product p {
+      margin: 8px 0 4px;
+      font-size: 20px;
+    }
+    .product input {
+      width: 100%;
+      padding: 6px;
+      margin: 4px 0;
+    }
+    .product button {
+      padding: 10px;
+      width: 100%;
+      background: orange;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    h2 {
+      margin: 80px 0 25px 0;
+      text-align: center;
+      font-weight: 900;
+      color: #222;
+      font-size: 32px;
+      letter-spacing: 2px;
+      user-select: none;
+    }
+    h2 span {
+      color: orange;
+      text-shadow: 0 0 6px orange;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="banner"><span> More Information Call Now WhatsApp/IMO: 01747130005</span></div>
+  <div class="ban"><span> Siyam Hosiery Dokan </span></div>
+  <h2> Tayebul <span>Shop</span></h2>
+  <div id="products" class="product-container">Loading...</div>  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoUgwlTjQqRIw2piNQGFcnMW8StR5rJD4",
+      authDomain: "tayebul-oder-7542d.firebaseapp.com",
+      databaseURL: "https://tayebul-oder-7542d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tayebul-oder-7542d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadProducts() {
+      const container = document.getElementById("products");
+      container.innerHTML = " Product :-! Loading...";
+      db.ref("products").once("value", snapshot => {
+        container.innerHTML = "";
+        snapshot.forEach(item => {
+          const data = item.val();
+          const key = item.key;
+          const div = document.createElement("div");
+          div.className = "product";
+          div.innerHTML = `
+            <img src="${data.image}" onclick="viewImage('${data.image}')">
+            <p><strong>${data.name}</strong></p>
+            <p>price :- ${data.price}/=</p>
+            <input type="text" id="qty_${key}" placeholder="dojon">
+            <input type="text" id="phone_${key}" placeholder="Phone Number">
+            <button onclick="placeOrder('${key}', '${data.name}', '${data.price}')">Order Now</button>
+            <p id="orderStatus_${key}" style="color:green; font-size:20px;"></p>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function placeOrder(id, name, price) {
+      const qty = document.getElementById("qty_" + id).value.trim();
+      const phone = document.getElementById("phone_" + id).value.trim();
+      const status = document.getElementById("orderStatus_" + id);
+
+      // ✅ Validation
+      if (!qty || !phone || phone.length !== 11 || !/^\d+$/.test(phone)) {
+        alert("⚠️ অনুগ্রহ করে সঠিক ১১ সংখ্যার ফোন নম্বর ও ডজন সংখ্যা লিখুন");
+        return;
+      }
+
+      const time = Date.now();
+      firebase.database().ref("orders").push({ name, qty, price, phone, time })
+        .then(() => {
+          status.textContent = "✅ অর্ডার সফলভাবে করা হয়েছে!";
+          setTimeout(() => { status.textContent = ""; }, 3000);
+        });
+    }
+
+    function viewImage(url) {
+      const win = window.open();
+      win.document.write(`<img src="${url}" style="width:100%;">`);
+    }
+
+    loadProducts();
+  </script></body>
+</html>
